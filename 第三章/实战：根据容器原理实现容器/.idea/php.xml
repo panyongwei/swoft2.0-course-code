@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PhpIncludePathManager">
+    <include_path>
+      <path value="/usr/local/Cellar/php/7.3.7/share/php/pear" />
+      <path value="/usr/local/Cellar/php/7.3.7/share/php/swoole-ide-helper" />
+    </include_path>
+  </component>
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.3" />
+</project>
