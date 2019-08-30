@@ -1,0 +1,21 @@
+{
+  "name": "sunnyos/test",
+  "description": "test",
+  "type": "library",
+  "license": "Apache-License2.0",
+  "minimum-stability": "dev",
+  "authors": [
+    {
+      "name": "Sphynx",
+      "email": "327388905@qq.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Sunny\\": "src/"
+    }
+  },
+  "require": {
+    "doctrine/annotations": "1.6"
+  }
+}
