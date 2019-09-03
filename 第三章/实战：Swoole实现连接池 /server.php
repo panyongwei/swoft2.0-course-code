@@ -1,11 +1,12 @@
 <?php
+Swoole\Runtime::enableCoroutine(true);
 include './MysqlPool.php';
 //创建http server
 $http = new Swoole\Http\Server("0.0.0.0", 9501);
-$http->set(["worker_num" => 1]);
+$http->set(["worker_num" => 2]);
 $http->on('WorkerStart', function ($serv, $worker_id) {
     $config = [
-        'min' => 3,
+        'min' => 2,
         'max' => 5,
         'time_out' => 1,
         'db_host' => '127.0.0.1',
@@ -24,7 +25,7 @@ $http->on('request', function ($request, $response) {
         $result = $mysql->query("select * from sunny_member");
         $row = $result->fetch(MYSQLI_ASSOC);
         MysqlPool::getInstance()->printLenth(Swoole\Coroutine::getCid() . '归还后：');
-        $response->end($row['username']);
+        $response->end($row['content']);
     } catch (\Exception $e) {
         $response->end($e->getMessage());
     }

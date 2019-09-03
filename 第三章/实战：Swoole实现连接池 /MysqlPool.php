@@ -1,7 +1,4 @@
 <?php
-
-use Swoole\Coroutine\Channel;
-
 /**
  * 1、设置配置信息
  * 2、创建连接对象
@@ -10,17 +7,26 @@ use Swoole\Coroutine\Channel;
  * 5、执行sql语句
  * 6、归还连接
  */
+use Swoole\Coroutine\Channel;
+
 class MysqlPool
 {
+    // 最小连接数
     private $min;
+    // 最大连接数
     private $max;
-    private $count;
+    // 当前连接数
+    private $count = 0;
+    // 获取超时时间
     private $timeOut = 0.2;
+    // 连接池对象容器
     private $connections;
+    // 配置信息
     private $config = [];
+    // 连接池对象
     private static $instance;
 
-    private function __construct($config)
+    public function __construct(array $config)
     {
         $this->config = $config;
         $this->min = $this->config['min'] ?? 2;
@@ -30,24 +36,25 @@ class MysqlPool
     }
 
     /**
-     * 单例模式获取MysqlPool对象
+     * 获取连接池对象
      * @param null $config
      * @return MysqlPool
-     * @throws Exception
      */
     public static function getInstance($config = null)
     {
         if (empty(self::$instance)) {
             if (empty($config)) {
-                throw new Exception("请传递配置信息");
+                throw new RuntimeException("mysql config empty");
             }
             self::$instance = new static($config);
         }
+
         return self::$instance;
     }
 
     /**
-     * 初始化MySQL连接池
+     * 初始化连接池
+     * @throws Exception
      */
     public function init()
     {
@@ -56,10 +63,13 @@ class MysqlPool
             $mysql = $this->createDb();
             $this->connections->push($mysql);
         }
+
     }
 
     /**
-     * 创建PDO数据库连接
+     * 创建数据库连接对象
+     * @return PDO
+     * @throws Exception
      */
     private function createDb()
     {
@@ -72,10 +82,16 @@ class MysqlPool
         }
     }
 
-
+    /**
+     * 获取数据库连接
+     * @return mixed|null|PDO
+     * @throws Exception
+     */
     public function getConnection()
     {
         $mysql = null;
+        // 判断是否为空，如果池空了，判断当前连接数是否下于最大连接数
+        // 如果小于最大连接数创建新连接数
         if ($this->connections->isEmpty()) {
             if ($this->count < $this->max) {
                 $this->count++;
@@ -86,9 +102,11 @@ class MysqlPool
         } else {
             $mysql = $this->connections->pop($this->timeOut);
         }
+        // 获取不到数据库连接抛出异常
         if (!$mysql) {
-            throw new \Exception("没有连接了");
+            throw new \Exception('没有连接了');
         }
+        // 当协程结束之后归还连接池
         defer(function () use ($mysql) {
             $this->connections->push($mysql);
         });
@@ -103,5 +121,4 @@ class MysqlPool
     {
         echo $str . $this->connections->length() . "\n";
     }
-
 }
